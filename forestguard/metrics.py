@@ -101,3 +101,23 @@ def detection_delay_days(observations) -> float | None:
     if len(lags) % 2:
         return float(lags[middle])
     return (lags[middle - 1] + lags[middle]) / 2
+
+
+def wilson_interval(successes: int, total: int, z: float = 1.96):
+    """95 % interval for a rate estimated from `total` scored samples.
+
+    With a few hundred reference points a precision of 0.87 and a precision of
+    0.75 are hard to tell apart, so every reported rate carries its interval.
+    Returns (low, high, point), or None when there is nothing to bound.
+    """
+    if total <= 0:
+        return None
+    from math import sqrt
+
+    p = successes / total
+    z2 = z * z
+    denominator = 1 + z2 / total
+    centre = (p + z2 / (2 * total)) / denominator
+    margin = (z / denominator) * sqrt(p * (1 - p) / total + z2 / (4 * total * total))
+    return (max(0.0, centre - margin), min(1.0, centre + margin), p)
+

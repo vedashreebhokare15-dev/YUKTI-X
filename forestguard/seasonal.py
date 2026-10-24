@@ -8,6 +8,8 @@ two is a finding to investigate, not a rounding detail to forgive.
 from dataclasses import dataclass
 from statistics import fmean, stdev
 
+from . import config
+
 
 @dataclass(frozen=True)
 class SeasonalEvidence:
@@ -18,7 +20,7 @@ class SeasonalEvidence:
     reason: str
 
 
-def expected_seasonal(observations, min_years: int = 3) -> SeasonalEvidence:
+def expected_seasonal(observations, min_years: int = config.MIN_BASELINE_YEARS) -> SeasonalEvidence:
     """Summarise same-season values from prior years.
 
     A one- or two-year history is not a seasonal pattern, and a spread of zero

@@ -1,13 +1,22 @@
-"""Phase 1 spike: prove Earth Engine is reachable and Sentinel-2 returns scenes.
+"""Phase 1/3 probe: is Earth Engine reachable, and what does the data look like.
 
-Run: python scripts/verify_access.py --project YOUR_PROJECT_ID
+Run:
+    python scripts/verify_access.py --project YOUR_PROJECT_ID
+    python scripts/verify_access.py --project YOUR_PROJECT_ID --aoi pilot --probability
+
+Nothing here exports imagery and nothing here is a forest-loss result. It answers
+three questions with real numbers: does the account initialize, how many scenes
+exist in a window, and how many of them survive the quality screen.
 """
 
 import argparse
-import datetime
+import importlib.metadata
+import os
 import sys
 
-from forestguard import config, s2
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from forestguard import config, dataquality, s2, windows  # noqa: E402
 
 
 def describe(exc: Exception) -> str:
@@ -15,63 +24,85 @@ def describe(exc: Exception) -> str:
     return f"{type(exc).__name__}: {text[:300]}"
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--project", default=None, help="Google Cloud project ID with Earth Engine enabled")
-    parser.add_argument("--start", default=config.ACCESS_PROBE["date_range"][0])
-    parser.add_argument("--end", default=config.ACCESS_PROBE["date_range"][1])
-    args = parser.parse_args()
-
-    print("=== 1. import earthengine-api ===")
-    import ee
-    print("version:", ee.__version__)
-
-    print("\n=== 2. initialize ===")
+def initialize(ee, project):
+    print("=== 1. initialize ===")
     try:
-        ee.Initialize(project=args.project) if args.project else ee.Initialize()
+        ee.Initialize(project=project) if project else ee.Initialize()
     except Exception as exc:
         print("FAILED", describe(exc))
         if "no project" in str(exc):
             print("\nThe Google sign-in worked but this account has no Earth Engine project.")
             print("Open https://code.earthengine.google.com/ in the same browser profile.")
             print("If it asks you to sign up, Earth Engine is not enabled for this account yet.")
-            print("If it opens the editor, the project ID is in the top-left selector.")
+        return False
+    print("initialized: yes")
+    return True
+
+
+def report_window(ee, aoi_box, label, start, end, use_probability) -> bool:
+    aoi = s2.aoi_geometry(aoi_box)
+    try:
+        found, usable = (int(value) for value in s2.scene_counts(aoi, start, end))
+    except Exception as exc:
+        print(f"FAILED - {label}: {describe(exc)}")
+        return False
+
+    quality = dataquality.assess_window(start, end, found, usable)
+    print(f"\n=== {label}: {start} .. {end} "
+          f"({'probability-screened' if use_probability else 'QA60 only'}) ===")
+    print(f"scenes found: {found}, usable after join: {usable}, status: {quality.status}")
+    for note in quality.notes:
+        print(f"  note: {note}")
+    if not quality.reportable:
+        return False
+
+    collection = s2.load(aoi, start, end, use_probability)
+    dates = windows.dates_from_millis(
+        collection.aggregate_array("system:time_start").getInfo()
+    )
+    clouds = collection.aggregate_array("CLOUDY_PIXEL_PERCENTAGE").getInfo()
+    print(f"acquisitions: {', '.join(dates[:8])}{' ...' if len(dates) > 8 else ''}")
+    summary = dataquality.cloud_percentage_summary(clouds)
+    if summary["scenes"]:
+        print(f"scene cloud cover: mean {summary['mean']:.1f}% "
+              f"(min {summary['minimum']:.1f}%, max {summary['maximum']:.1f}%) "
+              f"over {summary['scenes']} scenes")
+    else:
+        print("scene cloud cover: not reported by these scenes")
+
+    print("compositing over the AOI at 20 m ...")
+    comp = s2.composite(aoi, start, end, use_probability)
+    stats = comp.reduceRegion(ee.Reducer.mean(), aoi, scale=20,
+                              bestEffort=True, maxPixels=10 ** 8).getInfo()
+    print("per-band mean:", {k: (round(v, 3) if isinstance(v, float) else v)
+                             for k, v in stats.items()})
+    if stats.get("valid_obs") is None:
+        print("RESULT: PARTIAL - the composite produced no valid-observation count")
+        return False
+    print("RESULT: PASS - a real composite was computed and counted")
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project", default=None,
+                        help="Google Cloud project ID with Earth Engine enabled")
+    parser.add_argument("--aoi", choices=("pilot", "held_out"), default="held_out")
+    parser.add_argument("--start", default=config.ACCESS_PROBE["date_range"][0])
+    parser.add_argument("--end", default=config.ACCESS_PROBE["date_range"][1])
+    parser.add_argument("--probability", action="store_true",
+                        help="also require a matching cloud-probability scene")
+    args = parser.parse_args()
+
+    import ee
+    print("earthengine-api:", importlib.metadata.version("earthengine-api"))
+    if not initialize(ee, args.project):
         return 2
 
-    print("project:", ee.data.getProjectConfig().get("name") if hasattr(ee.data, "getProjectConfig") else args.project)
-
-    print("\n=== 3. scene listing ===")
-    aoi = s2.aoi_geometry(config.ACCESS_PROBE["aoi"])
-    collection = s2.load(aoi, args.start, args.end)
-    try:
-        count = int(collection.size().getInfo())
-    except Exception as exc:
-        print("FAILED", describe(exc))
-        return 3
-    print(f"scenes: {count}  ({args.start} .. {args.end})")
-    if count == 0:
-        print("No data. Either the AOI is outside the footpath or the range is empty.")
-        return 4
-
-    dates = collection.aggregate_array("system:time_start").getInfo()
-    clouds = collection.aggregate_array("CLOUDY_PIXEL_PERCENTAGE").getInfo()
-    for ms, cloud in list(zip(dates, clouds))[:10]:
-        day = datetime.datetime.utcfromtimestamp(ms / 1000).strftime("%Y-%m-%d")
-        print(f"  {day}  cloud={cloud}%")
-
-    print("\n=== 4. quality screening returns numbers ===")
-    try:
-        comp = s2.composite(aoi, args.start, args.end)
-        stats = comp.reduceRegion(
-            ee.Reducer.mean(), config.ACCESS_PROBE["aoi"], scale=20, bestEffort=True
-        ).getInfo()
-    except Exception as exc:
-        print("FAILED", describe(exc))
-        return 5
-    print("mean per band:", {k: round(v, 4) if isinstance(v, float) else v for k, v in stats.items()})
-    valid = stats.get("valid_obs")
-    print("\nRESULT: PASS" if valid is not None else "\nRESULT: PARTIAL - valid_obs missing")
-    return 0
+    box = config.PILOT["aoi"] if args.aoi == "pilot" else config.HELD_OUT["aoi"]
+    name = (config.PILOT if args.aoi == "pilot" else config.HELD_OUT)["name"]
+    ok = report_window(ee, box, name, args.start, args.end, args.probability)
+    return 0 if ok else 3
 
 
 if __name__ == "__main__":

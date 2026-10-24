@@ -9,6 +9,7 @@ from forestguard.classify import (
     POSSIBLE_LOSS,
     classify,
 )
+from forestguard.classify import explain as classify_explain
 
 
 def decide(deviation_sigma, valid_before=10, valid_after=10, historical_forest=True,
@@ -60,6 +61,48 @@ class TestClassify(unittest.TestCase):
         self.assertEqual(decide(-4.0, supporting_index_agrees=True), LIKELY_LOSS)
         self.assertEqual(decide(-3.9, supporting_index_agrees=True), POSSIBLE_LOSS)
 
+
+class TestExplain(unittest.TestCase):
+    """Every reported class must be traceable to one rule in the table."""
+
+    def explain(self, **kwargs):
+        args = {"valid_before": 5, "valid_after": 5, "historical_forest": True,
+                "deviation_sigma": -0.5, "supporting_index_agrees": False,
+                "persistence_confirmed": False}
+        args.update(kwargs)
+        return classify_explain(**args)
+
+    def test_reason_names_the_rule_that_fired(self):
+        self.assertEqual(self.explain(valid_before=1)[1], "R1")
+        self.assertEqual(self.explain(historical_forest=False)[1], "R2")
+        self.assertEqual(self.explain(deviation_sigma=None)[1], "R3")
+        self.assertEqual(self.explain(deviation_sigma=-4.5, persistence_confirmed=True)[1], "R4")
+        self.assertEqual(self.explain(deviation_sigma=-2.5)[1], "R5")
+        self.assertEqual(self.explain()[1], "R6")
+
+    def test_insufficient_reason_reports_the_actual_counts(self):
+        label, rule, reason = self.explain(valid_before=2, valid_after=1)
+        self.assertEqual(rule, "R1")
+        self.assertIn("2 valid observations before", reason)
+        self.assertIn("1 after", reason)
+
+    def test_uncomputable_corroboration_is_not_described_as_disagreement(self):
+        label, rule, reason = self.explain(deviation_sigma=-5.0, persistence_confirmed=None)
+        self.assertEqual(label, POSSIBLE_LOSS)
+        self.assertIn("could not be computed", reason)
+
+    def test_greenup_is_explained_as_greenup(self):
+        label, rule, reason = self.explain(deviation_sigma=3.0)
+        self.assertEqual(label, NO_LOSS)
+        self.assertIn("green-up", reason)
+
+    def test_explain_and_classify_never_disagree(self):
+        for sigma in (-5.0, -4.0, -3.0, -2.0, -1.0, 0.0, 1.0):
+            for agrees in (True, False, None):
+                arguments = dict(valid_before=5, valid_after=5, historical_forest=True,
+                                 deviation_sigma=sigma, supporting_index_agrees=agrees,
+                                 persistence_confirmed=agrees)
+                self.assertEqual(classify(**arguments), classify_explain(**arguments)[0])
 
 if __name__ == "__main__":
     unittest.main()

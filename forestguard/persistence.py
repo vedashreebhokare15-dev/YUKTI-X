@@ -6,14 +6,14 @@ question, and returns None - not False - when the later observations are too
 sparse to answer it, which is the common case in monsoon cloud.
 """
 
-from . import seasonal
+from . import config, seasonal
 from .seasonal import SeasonalEvidence
 
 
 def persistent_decline(
     subsequent_values,
     baseline: SeasonalEvidence,
-    threshold_sigma: float = 2.0,
+    threshold_sigma: float = config.WEAK_SIGMA,
     required_fraction: float = 1.0,
     min_observations: int = 2,
 ) -> bool | None:
@@ -36,7 +36,7 @@ def persistent_decline(
 
 def supporting_index_agrees(
     index_deviations,
-    threshold_sigma: float = 2.0,
+    threshold_sigma: float = config.WEAK_SIGMA,
     min_observations: int = 1,
 ) -> bool | None:
     """Do the moisture or burn indices decline as strongly as greenness?

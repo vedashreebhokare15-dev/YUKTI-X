@@ -5,6 +5,7 @@ import unittest
 
 from forestguard.classify import INSUFFICIENT, LIKELY_LOSS, NO_LOSS, POSSIBLE_LOSS
 from forestguard.metrics import detection_delay_days, evaluate
+from forestguard.metrics import wilson_interval as metrics_wilson
 
 DATE = datetime.date
 
@@ -91,6 +92,25 @@ class TestDetectionDelay(unittest.TestCase):
     def test_no_observations(self):
         self.assertIsNone(detection_delay_days([]))
 
+
+class TestWilsonInterval(unittest.TestCase):
+    def test_none_without_samples(self):
+        self.assertIsNone(metrics_wilson(0, 0))
+
+    def test_interval_brackets_the_point_estimate(self):
+        low, high, point = metrics_wilson(80, 100)
+        self.assertAlmostEqual(point, 0.8)
+        self.assertLessEqual(low, point)
+        self.assertLessEqual(point, high)
+
+    def test_a_small_sample_is_honest_about_being_uncertain(self):
+        wide_low, wide_high, _ = metrics_wilson(4, 5)
+        tight_low, tight_high, _ = metrics_wilson(80, 100)
+        self.assertGreater(wide_high - wide_low, tight_high - tight_low)
+
+    def test_interval_stays_inside_zero_and_one(self):
+        self.assertGreaterEqual(metrics_wilson(0, 20)[0], 0.0)
+        self.assertLessEqual(metrics_wilson(20, 20)[1], 1.0)
 
 if __name__ == "__main__":
     unittest.main()
