@@ -11,10 +11,27 @@ build/
 *.pem
 credentials.json
 service-account*.json
-assets/
+
+# Working rasters and vector exports. Every one of these is anchored on purpose: an
+# unanchored `assets/` or `data/` also matched frontend/public/assets and
+# frontend/src/data, which silently excluded the React app's whole data layer and
+# every image it renders.
+/assets/
 *.tif
 *.tiff
 *.shp
 *.gpkg
 .DS_Store
 Thumbs.db
+
+# probe and run logs
+*.log
+
+# One-off Earth Engine probes. Their conclusions are written up in docs/; the payloads
+# are a timed-out request and a region listing, not data to publish.
+/run_probe.json
+/regions_probe.json
+/scripts/probe_run_cost.py
+
+# The labelled sample tables (~180 KB) and the trained bundle (~600 KB) are versioned
+# deliberately: without them nobody can reproduce the model page from a clone.

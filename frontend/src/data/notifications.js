@@ -1,0 +1,38 @@
+export const SAMPLE_NOTIFICATIONS = [
+  {
+    id: 'note-001',
+    type: 'analysis',
+    title: 'Analysis run completed',
+    message: 'The demo run for Melghat Forest Landscape has finished. Review the results.',
+    createdAt: '2024-12-03T10:25:00.000Z',
+    read: false,
+    isDemo: true,
+  },
+  {
+    id: 'note-002',
+    type: 'report',
+    title: 'New report available',
+    message: 'Forest Loss Summary Report is ready in the Reports library.',
+    createdAt: '2024-12-04T09:18:00.000Z',
+    read: false,
+    isDemo: true,
+  },
+  {
+    id: 'note-003',
+    type: 'warning',
+    title: 'Early warning — Pune district',
+    message: 'A possible forest-loss demo detection was added near Tamhini Ghat.',
+    createdAt: '2024-12-02T16:40:00.000Z',
+    read: false,
+    isDemo: true,
+  },
+  {
+    id: 'note-004',
+    type: 'system',
+    title: 'Satellite service not connected',
+    message: 'This build uses illustrative sample data. A Sentinel-2 data connection is required for live analysis.',
+    createdAt: '2024-11-30T08:00:00.000Z',
+    read: true,
+    isDemo: true,
+  },
+];

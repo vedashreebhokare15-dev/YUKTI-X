@@ -29,8 +29,28 @@ def _ratio(numerator: ee.Image, denominator: ee.Image, name: str) -> ee.Image:
     )
 
 
-def _to_20m(narrow: ee.Image) -> ee.Image:
-    return narrow.reduceResolution(ee.Reducer.mean()).reproject(scale=20)
+def _to_coarser(narrow: ee.Image) -> ee.Image:
+    """Aggregate the 10 m near-infrared term onto the 20 m analysis grid.
+
+    A composite built by reducing several scenes reports every band as an abstract
+    EPSG:4326 projection with no scale, and `reduceResolution` refuses such an image
+    ("The input to reduceResolution does not have a valid default projection"). Both
+    grids are therefore declared instead of inherited: the Sentinel-2 10 m grid for
+    the term being aggregated, and the 20 m analysis grid as the target - the same
+    grid every other band is read on. `maxPixels` is raised above the default of 8
+    because the two grids are not perfectly nested; without it Earth Engine aborts
+    instead of averaging the few extra source pixels that overlap a 20 m cell.
+
+    The short-wave bands are never lifted to 10 m. Averaging the near-infrared down
+    is the only resampling performed here.
+    """
+    declared = narrow.setDefaultProjection(
+        crs=config.INDEX_GRID_CRS, scale=config.INDEX_FINE_SCALE_METERS
+    )
+    return declared.reduceResolution(
+        reducer=ee.Reducer.mean(),
+        maxPixels=config.RESAMPLE_MAX_INPUT_PIXELS,
+    ).reproject(crs=config.INDEX_GRID_CRS, scale=config.ANALYSIS_SCALE_METERS)
 
 
 def ndvi(image: ee.Image) -> ee.Image:
@@ -43,7 +63,7 @@ def ndvi(image: ee.Image) -> ee.Image:
 
 def ndmi(image: ee.Image) -> ee.Image:
     bands = _indices_image(image)
-    nir, swir = _to_20m(bands.select("B8")), bands.select("B11")
+    nir, swir = _to_coarser(bands.select("B8")), bands.select("B11")
     return _ratio(nir.subtract(swir), nir.add(swir), "NDMI").set(
         {"nominal_resolution_m": 20, "source_bands": "B8@20m,B11"}
     )
@@ -51,7 +71,7 @@ def ndmi(image: ee.Image) -> ee.Image:
 
 def nbr(image: ee.Image) -> ee.Image:
     bands = _indices_image(image)
-    nir, swir = _to_20m(bands.select("B8")), bands.select("B12")
+    nir, swir = _to_coarser(bands.select("B8")), bands.select("B12")
     return _ratio(nir.subtract(swir), nir.add(swir), "NBR").set(
         {"nominal_resolution_m": 20, "source_bands": "B8@20m,B12"}
     )

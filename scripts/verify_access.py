@@ -42,7 +42,7 @@ def initialize(ee, project):
 def report_window(ee, aoi_box, label, start, end, use_probability) -> bool:
     aoi = s2.aoi_geometry(aoi_box)
     try:
-        found, usable = (int(value) for value in s2.scene_counts(aoi, start, end))
+        found, usable = (int(value.getInfo()) for value in s2.scene_counts(aoi, start, end))
     except Exception as exc:
         print(f"FAILED - {label}: {describe(exc)}")
         return False

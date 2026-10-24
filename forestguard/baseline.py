@@ -24,34 +24,55 @@ def period_evidence(aoi_box, start: str, end: str,
     return indices.all_indices(observed).addBands(comp.select("valid_obs"))
 
 
-def seasonal_baseline(aoi_box, window: tuple, history_years: int,
-                      index: str = "NDVI", use_cloud_probability: bool = False):
-    """Mean and spread of the same calendar window over prior years.
+BASELINE_INDICES = ("NDVI", "NDMI", "NBR")
 
-    Returns the baseline image plus the per-pixel count of seasons that
-    contributed. A baseline built from one or two seasons is not a seasonal
-    pattern, so those pixels come back masked rather than as a flat guess.
+
+def seasonal_baselines(aoi_box, window: tuple, history_years: int,
+                       indices=BASELINE_INDICES,
+                       use_cloud_probability: bool = False) -> dict:
+    """Mean and spread of the same calendar window over prior years, all indices.
+
+    One composite is built per history season and every index is read out of it.
+    Asking for NDVI, NDMI and NBR separately would build three composites of the
+    same scenes, and a full-region run cannot survive that: the Earth Engine
+    timeout is per request, so a request that repeats the slowest part of itself
+    three times is a run that never returns.
     """
     periods = windows.history_windows(window[0], window[1], history_years)
-    images = []
-    for year, start, end in periods:
-        images.append(
-            period_evidence(aoi_box, start, end, use_cloud_probability)
-            .select(index)
+    seasons = [period_evidence(aoi_box, start, end, use_cloud_probability)
+               for _year, start, end in periods]
+    baselines = {}
+    for index in indices:
+        stack = ee.ImageCollection([
+            season.select(index)
             .set("observation_year", year)
             .set("observation_window", [start, end])
+            for season, (year, start, end) in zip(seasons, periods)
+        ])
+        stats = stack.reduce(
+            ee.Reducer.mean().combine(ee.Reducer.stdDev(), sharedInputs=True)
         )
-    stack = ee.ImageCollection(images)
-    stats = stack.reduce(
-        ee.Reducer.mean().combine(ee.Reducer.stdDev(), sharedInputs=True)
-    )
-    contributing_years = stack.count()
+        contributing_years = stack.count()
+        usable = contributing_years.gte(config.MIN_BASELINE_YEARS)
+        baselines[index] = (stats.updateMask(usable)
+                            .rename([f"{index}_baseline", f"{index}_stddev"])
+                            .addBands(contributing_years.rename(
+                                [f"{index}_baseline_years"])))
+    return baselines
 
-    usable = contributing_years.gte(config.MIN_BASELINE_YEARS)
-    stats = (stats.updateMask(usable)
-             .rename([f"{index}_baseline", f"{index}_stddev"])
-             .addBands(contributing_years.rename([f"{index}_baseline_years"])))
-    return stats, contributing_years
+
+def seasonal_baseline(aoi_box, window: tuple, history_years: int,
+                      index: str = "NDVI", use_cloud_probability: bool = False):
+    """The single-index view of `seasonal_baselines`, as (stats, contributing years).
+
+    The count of contributing seasons travels inside the stats image as the
+    `<index>_baseline_years` band, which is what `seasonal_baselines` masks the
+    statistics with, so this cannot promise a count the shared build did not make.
+    """
+    stats = seasonal_baselines(
+        aoi_box, window, history_years, (index,), use_cloud_probability
+    )[index]
+    return stats, stats.select(f"{index}_baseline_years")
 
 
 def deviation_sigma(current: ee.Image, baseline: ee.Image, index: str = "NDVI") -> ee.Image:

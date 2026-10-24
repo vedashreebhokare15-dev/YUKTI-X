@@ -41,11 +41,11 @@ def explain(
         return (INSUFFICIENT, "R1",
                 f"only {valid_before} valid observations before and {valid_after} after, "
                 f"minimum is {min_valid_observations}")
-    if not historical_forest:
-        return (INSUFFICIENT, "R2", "no historical forest here, so there is nothing to lose")
     if deviation_sigma is None:
         return (INSUFFICIENT, "R3",
                 "no seasonal expectation for this location, so a change has nothing to be measured against")
+    if not historical_forest:
+        return (INSUFFICIENT, "R2", "no historical forest here, so there is nothing to lose")
 
     decline = -deviation_sigma
     # None means the corroboration could not be computed. It is not evidence of

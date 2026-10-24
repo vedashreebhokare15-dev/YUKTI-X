@@ -1,0 +1,356 @@
+{
+ "provenance": {
+  "region": "maharashtra",
+  "region_name": "Melghat - Satpura dry deciduous forest, Maharashtra",
+  "role": "train",
+  "sample_ring": [
+   [
+    77.2,
+    21.2
+   ],
+   [
+    77.23,
+    21.2
+   ],
+   [
+    77.23,
+    21.22
+   ],
+   [
+    77.2,
+    21.22
+   ],
+   [
+    77.2,
+    21.2
+   ]
+  ],
+  "before_window": [
+   "2024-10-15",
+   "2024-12-15"
+  ],
+  "after_window": [
+   "2025-10-15",
+   "2025-12-15"
+  ],
+  "history_years": 3,
+  "reference_asset": "UMD/hansen/global_forest_change_2025_v1_13",
+  "reference_pixel_meters": 30.92,
+  "loss_window": [
+   25,
+   25
+  ],
+  "training_cell_meters": 90,
+  "stride_meters": 100,
+  "analysis_scale_meters": 20,
+  "min_tree_cover": 30,
+  "cloud_screening": "QA60 + cloud probability + 3 km buffer + shadow",
+  "feature_names": [
+   "ndvi_before",
+   "ndvi_after",
+   "ndmi_before",
+   "ndmi_after",
+   "nbr_before",
+   "nbr_after",
+   "ndvi_sigma",
+   "ndmi_sigma",
+   "nbr_sigma",
+   "valid_before",
+   "valid_after",
+   "ndvi_baseline"
+  ],
+  "generated_by": "scripts/build_training_set.py"
+ },
+ "summary": {
+  "loss": 0,
+  "no_loss": 0,
+  "abstained": 782,
+  "dropped": 0
+ },
+ "abstained": [
+  {
+   "cell_id": "77.20000_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20090_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20180_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20269_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20359_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20449_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20539_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20629_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20719_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20808_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20898_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20988_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21078_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21168_21.20000",
+   "reason": "mean canopy 0.0686232196806215 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21258_21.20000",
+   "reason": "mean canopy 1.3045729076790338 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21347_21.20000",
+   "reason": "mean canopy 0.06862321968062149 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21437_21.20000",
+   "reason": "mean canopy 1.10267471958585 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21527_21.20000",
+   "reason": "mean canopy 2.2658610271903328 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21617_21.20000",
+   "reason": "mean canopy 10.557093425605537 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21707_21.20000",
+   "reason": "mean canopy 3.827288428324698 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21797_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21886_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.21976_21.20000",
+   "reason": "mean canopy 5.203287197231834 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22066_21.20000",
+   "reason": "mean canopy 1.264794816414687 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22156_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22246_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22336_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22425_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22515_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22605_21.20000",
+   "reason": "mean canopy 1.6311015118790497 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22695_21.20000",
+   "reason": "mean canopy 10.346419327006041 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22785_21.20000",
+   "reason": "mean canopy 18.755718601640048 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22875_21.20000",
+   "reason": "mean canopy 1.9421665947345703 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.22964_21.20000",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20000_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20090_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20180_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20269_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20359_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  },
+  {
+   "cell_id": "77.20449_21.20090",
+   "reason": "mean canopy 0.0 is below the 30 % cover gate, so this cell is not forest to lose",
+   "loss_pixels": 0,
+   "stable_pixels": 0,
+   "unknown_pixels": 0
+  }
+ ],
+ "dropped": [],
+ "labels": [],
+ "rows": [],
+ "kept": []
+}

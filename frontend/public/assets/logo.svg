@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VanaDrishti AI logo">
+  <defs>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#16845C"/>
+      <stop offset="100%" stop-color="#033D2E"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EAF7F1"/>
+      <stop offset="100%" stop-color="#9FE3C6"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#mark)" stroke="#9FE3C6" stroke-opacity=".55" stroke-width="1.5"/>
+  <path d="M12 38c8-9 14-12 20-12s12 3 20 12" fill="none" stroke="#9FE3C6" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="2.5 3.5"/>
+  <circle cx="50" cy="22" r="2.6" fill="#EAF7F1"/>
+  <path d="M32 14l8.5 13h-4.6L43 38.5h-8V50h-6V38.5h-8L27.8 27h-4.6L32 14z" fill="url(#leaf)"/>
+  <path d="M29 50h6v3.5a3 3 0 0 1-6 0V50z" fill="#9FE3C6"/>
+</svg>

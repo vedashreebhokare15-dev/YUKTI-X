@@ -85,19 +85,35 @@ def quality_screen(image: ee.Image, aoi: ee.Geometry,
         cloud = cloud.Or(image.select("cloud_prob").gte(config.CLOUD_PROBABILITY_CLOUDY))
     cloud = cloud.Or(cirrus).rename("cloud")
 
-    nir = image.select("B8").divide(config.INDEX_SCALE_FACTOR)
+    shadow_nir = image.select("B8").divide(config.INDEX_SCALE_FACTOR)
     # The brightness reference is the study area, not the whole 109 km scene:
     # a distant half of the tile that is entirely cloud would move the shadow
     # threshold under the pixels we actually report on.
     scene_mean_nir = ee.Number(
-        nir.reduceRegion(ee.Reducer.mean(), aoi, scale=20, bestEffort=True,
-                         maxPixels=10 ** 8).get("B8")
+        shadow_nir.reduceRegion(ee.Reducer.mean(), aoi, scale=20, bestEffort=True,
+                                maxPixels=10 ** 8).get("B8")
     )
-    dark = nir.lt(scene_mean_nir.multiply(config.SHADOW_NIR_FRACTION))
-    near_cloud = cloud.focal_max(
-        radius=config.CLOUD_BUFFER_METERS, kernel="circle", units="meters", iterations=1
+    dark = shadow_nir.lt(scene_mean_nir.multiply(config.SHADOW_NIR_FRACTION))
+    buffered = (
+        cloud.reproject(crs=config.CLOUD_BUFFER_CRS,
+                        scale=config.CLOUD_BUFFER_GRID_METERS)
+        # earthengine-api 1.7 no longer promotes a kernel name given as a string,
+        # so the kernel is built as an object with its own radius and units.
+        .focal_max(
+            kernel=ee.Kernel.circle(
+                radius=config.CLOUD_BUFFER_METERS, units="meters"
+            ),
+            iterations=1,
+        )
+        # Pin the result to the buffer grid. Without this second reproject Earth
+        # Engine re-runs the whole buffer whenever a consumer asks for the mask at
+        # the 10 m band resolution, and a 3 km buffer needs 601 pixels there - past
+        # the 512 pixel kernel limit. The mask is resampled instead of recomputed;
+        # reflectance bands keep their own grids either way.
+        .reproject(crs=config.CLOUD_BUFFER_CRS,
+                   scale=config.CLOUD_BUFFER_GRID_METERS)
     )
-    shadow = near_cloud.gt(0).And(dark)
+    shadow = buffered.gt(0).And(dark)
 
     return image.addBands(cloud.Not().And(shadow.Not()).rename("valid"))
 
@@ -114,10 +130,13 @@ def composite(aoi: ee.Geometry, start: str, end: str,
         lambda image: quality_screen(image, aoi, use_cloud_probability)
     )
 
+    # `valid` is read while it is still on the image, then dropped with the
+    # selection: masking a reflectance-only image would have no `valid` band.
+    def mask_to_valid(image: ee.Image) -> ee.Image:
+        return image.updateMask(image.select("valid")).select(bands)
+
     median = (
-        scenes.select(bands).map(lambda image: image.updateMask(image.select("valid")))
-        .reduce(ee.Reducer.median())
-        .rename(bands)
+        scenes.map(mask_to_valid).reduce(ee.Reducer.median()).rename(bands)
     )
     valid_obs = (
         scenes.select(["valid"]).map(lambda image: image.selfMask())
